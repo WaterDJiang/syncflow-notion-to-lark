@@ -1,0 +1,5 @@
+{
+  "name": "SyncFlow: Notion to Lark",
+  "description": "An intelligent tool to synchronize Notion databases to Lark (Feishu) Base using Gemini AI to automatically map data schemas.",
+  "requestFramePermissions": []
+}
