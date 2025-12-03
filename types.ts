@@ -30,13 +30,24 @@ export interface NotionConfig {
 
 export interface LarkConfig {
   tableId: string;
-  // app credentials retrieved from storage
+  appToken?: string;
 }
+
+export type LarkTableConfig = {
+  name: string;
+  appToken: string;
+  tableId: string;
+};
 
 export interface UserCredentials {
   notionToken: string;
   larkAppId: string;
   larkAppSecret: string;
+  larkTables?: LarkTableConfig[];
+  userAccessToken?: string;
+  refreshToken?: string;
+  userAccessTokenExpiresAt?: number;
+  redirectUri?: string;
 }
 
 export type SimulationScenario = 'success' | 'partial_failure' | 'network_error' | 'auth_error';
@@ -50,4 +61,16 @@ export interface AppState {
   mapping: MappingPair[];
   logs: LogEntry[];
   isSyncing: boolean;
+  syncRefreshTick?: number;
 }
+
+export type LarkSyncOperation = 'create_app' | 'update_app' | 'insert_records' | 'copy_app';
+
+export type LarkOperationConfig = {
+  op: LarkSyncOperation;
+  params?: {
+    name?: string;
+    folder_token?: string;
+    limit?: number;
+  };
+};

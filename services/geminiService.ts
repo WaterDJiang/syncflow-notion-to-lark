@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { FieldSchema, MappingPair } from '../types';
 
 const getClient = () => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
   if (!apiKey) {
     console.error("API Key not found");
     throw new Error("API Key not found");

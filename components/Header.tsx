@@ -1,11 +1,14 @@
 import React from 'react';
 import { RefreshCw, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import LanguageToggle from './LanguageToggle';
 
 interface HeaderProps {
   onOpenSettings: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
+  const { t } = useTranslation();
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-gray-200/50 supports-[backdrop-filter]:bg-white/60">
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
@@ -22,10 +25,11 @@ const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
             <button 
               onClick={onOpenSettings}
               className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100/50 rounded-lg transition-colors"
-              title="API Credentials"
+              title={t('open_settings')}
             >
               <Settings size={20} strokeWidth={2} />
             </button>
+            <LanguageToggle />
         </div>
       </div>
     </header>

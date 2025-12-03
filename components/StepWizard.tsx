@@ -1,16 +1,19 @@
 import React from 'react';
 import { AppStep } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface StepWizardProps {
   currentStep: AppStep;
+  onSelectStep?: (step: AppStep) => void;
 }
 
-const StepWizard: React.FC<StepWizardProps> = ({ currentStep }) => {
+const StepWizard: React.FC<StepWizardProps> = ({ currentStep, onSelectStep }) => {
+  const { t } = useTranslation();
   const steps = [
-    { id: AppStep.CONFIG_NOTION, label: 'Connect Notion' },
-    { id: AppStep.CONFIG_LARK, label: 'Connect Lark' },
-    { id: AppStep.MAPPING, label: 'Map Fields' },
-    { id: AppStep.SYNC, label: 'Sync' },
+    { id: AppStep.CONFIG_NOTION, label: t('connect_notion') },
+    { id: AppStep.CONFIG_LARK, label: t('connect_lark') },
+    { id: AppStep.MAPPING, label: t('map_fields') },
+    { id: AppStep.SYNC, label: t('sync') },
   ];
 
   return (
@@ -23,7 +26,7 @@ const StepWizard: React.FC<StepWizardProps> = ({ currentStep }) => {
             
             return (
               <li key={step.id} className="relative flex-1">
-                 <div
+                <div
                   className={`
                     w-full flex items-center justify-center py-1.5 px-4 rounded-full text-xs font-medium transition-all duration-300 ease-out
                     ${isCurrent 
@@ -33,6 +36,10 @@ const StepWizard: React.FC<StepWizardProps> = ({ currentStep }) => {
                             : 'text-gray-400'
                     }
                   `}
+                  onClick={() => { if (onSelectStep && step.id < currentStep) onSelectStep(step.id); }}
+                  role={step.id < currentStep ? 'button' : undefined}
+                  aria-disabled={step.id >= currentStep}
+                  style={{ cursor: step.id < currentStep ? 'pointer' : 'default' }}
                 >
                   <span className="truncate">{step.label}</span>
                 </div>
@@ -40,6 +47,7 @@ const StepWizard: React.FC<StepWizardProps> = ({ currentStep }) => {
             );
           })}
         </ol>
+        
       </nav>
     </div>
   );

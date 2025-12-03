@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FieldSchema, MappingPair } from '../types';
 import { suggestMapping } from '../services/geminiService';
-import { ArrowRight, Wand2, ArrowLeftRight, Trash2, Plus } from 'lucide-react';
+import { ArrowRight, Wand2, ArrowLeftRight, Trash2, Plus, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface MappingStepProps {
   sourceSchema: FieldSchema[];
@@ -11,7 +12,9 @@ interface MappingStepProps {
 
 const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, onConfirm }) => {
   const [mapping, setMapping] = useState<MappingPair[]>([]);
+  const { t } = useTranslation();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [targetCount, setTargetCount] = useState(0);
 
   useEffect(() => {
     if (mapping.length === 0) {
@@ -29,6 +32,10 @@ const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, o
     }
     setIsAnalyzing(false);
   };
+
+  useEffect(() => {
+    setTargetCount(targetSchema.length);
+  }, [targetSchema]);
 
   const updateRow = (index: number, field: 'sourceFieldId' | 'targetFieldId', value: string) => {
     const newMapping = [...mapping];
@@ -51,8 +58,8 @@ const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, o
       
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
         <div>
-           <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">Data Mapping</h2>
-           <p className="text-gray-500 mt-1">Match your Notion properties to Lark Base fields.</p>
+           <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">{t('data_mapping')}</h2>
+           <p className="text-gray-500 mt-1">{t('mapping_subtitle')}</p>
         </div>
         <button
             onClick={handleAiMapping}
@@ -67,15 +74,21 @@ const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, o
             ) : (
               <Wand2 size={14} />
             )}
-            <span>Auto-Map with AI</span>
+            <span>{t('auto_map')}</span>
         </button>
+        {targetCount === 0 && (
+          <div className="flex items-center text-xs text-gray-500">
+            <RefreshCw size={12} className="mr-1" />
+            No Lark fields detected. Go back and ensure Base token & Table ID are valid and app has permissions.
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden border border-gray-100">
         <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 grid grid-cols-12 gap-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-             <div className="col-span-5 pl-2">Notion Source</div>
+             <div className="col-span-5 pl-2">{t('notion_source')}</div>
              <div className="col-span-2"></div>
-             <div className="col-span-5 pl-2">Lark Destination</div>
+             <div className="col-span-5 pl-2">{t('lark_destination')}</div>
         </div>
 
         <div className="divide-y divide-gray-100">
@@ -90,10 +103,10 @@ const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, o
                     onChange={(e) => updateRow(index, 'sourceFieldId', e.target.value)}
                     className="appearance-none block w-full rounded-xl border-gray-200 bg-white py-2.5 pl-3 pr-10 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] shadow-sm transition-shadow"
                     >
-                    <option value="">Select Field</option>
+                    <option value="">{t('select_field')}</option>
                     {sourceSchema.map(field => (
                         <option key={field.id} value={field.id} disabled={mapping.some((m, i) => i !== index && m.sourceFieldId === field.id)}>
-                        {field.name}
+                          {field.name}
                         </option>
                     ))}
                     </select>
@@ -124,7 +137,7 @@ const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, o
                         onChange={(e) => updateRow(index, 'targetFieldId', e.target.value)}
                         className="appearance-none block w-full rounded-xl border-gray-200 bg-white py-2.5 pl-3 pr-10 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] shadow-sm transition-shadow"
                     >
-                        <option value="">Select Field</option>
+                        <option value="">{t('select_field')}</option>
                         {targetSchema.map(field => (
                         <option key={field.id} value={field.id} disabled={mapping.some((m, i) => i !== index && m.targetFieldId === field.id)}>
                             {field.name}
@@ -154,7 +167,7 @@ const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, o
                 className="w-full py-3 rounded-xl border border-dashed border-gray-300 text-gray-500 hover:border-[#0071E3] hover:text-[#0071E3] hover:bg-[#0071E3]/5 flex items-center justify-center text-sm font-medium transition-all"
             >
                 <Plus size={16} className="mr-2" />
-                Add Another Field
+                {t('add_another_field')}
             </button>
         </div>
       </div>
@@ -165,7 +178,7 @@ const MappingStep: React.FC<MappingStepProps> = ({ sourceSchema, targetSchema, o
           disabled={!isValid}
           className="inline-flex items-center px-8 py-4 bg-[#0071E3] hover:bg-[#0077ED] border border-transparent rounded-2xl font-semibold text-white shadow-sm transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Confirm Configuration
+          {t('confirm_configuration')}
           <ArrowRight className="ml-2 h-4 w-4 stroke-[3px]" />
         </button>
       </div>

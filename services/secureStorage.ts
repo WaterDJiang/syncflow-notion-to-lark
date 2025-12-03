@@ -1,4 +1,4 @@
-import { UserCredentials } from '../types';
+import { UserCredentials, LarkTableConfig } from '../types';
 
 const STORAGE_KEY = 'syncflow_secure_creds';
 const SALT = 'sf_v1_salt_'; // Simple salt to prevent plain text visibility
@@ -51,4 +51,15 @@ export const clearCredentials = () => {
 
 export const hasCredentials = (): boolean => {
   return !!localStorage.getItem(STORAGE_KEY);
+};
+
+export const loadLarkTables = (): LarkTableConfig[] => {
+  const creds = loadCredentials();
+  return creds?.larkTables || [];
+};
+
+export const saveLarkTables = (tables: LarkTableConfig[]) => {
+  const existing = loadCredentials() || { notionToken: '', larkAppId: '', larkAppSecret: '' };
+  const next: UserCredentials = { ...existing, larkTables: tables } as UserCredentials;
+  saveCredentials(next);
 };
