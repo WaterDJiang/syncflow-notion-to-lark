@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Lock, Save, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getTenantToken } from '../services/larkService';
 import { loadCredentials, saveCredentials, loadLarkTables, saveLarkTables } from '../services/secureStorage';
 import { LarkTableConfig } from '../types';
 
@@ -19,6 +20,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [newAppToken, setNewAppToken] = useState('');
   const [newTableId, setNewTableId] = useState('');
   const { t } = useTranslation();
+  const [verifyMsg, setVerifyMsg] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -73,10 +75,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       />
 
       {/* Modal Window */}
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-xl overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <div className="flex items-center space-x-2">
             <ShieldCheck className="text-gray-900" size={20} />
             <h3 className="font-semibold text-gray-900">{t('credential_manager_title')}</h3>
@@ -90,22 +92,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
-          <div className="bg-blue-50/50 rounded-xl p-4 flex items-start space-x-3 border border-blue-100">
+        <div className="p-4 space-y-4">
+          <div className="bg-blue-50/50 rounded-xl p-3 flex items-start space-x-3 border border-blue-100">
             <Lock className="text-[#0071E3] shrink-0 mt-0.5" size={16} />
             <p className="text-xs text-gray-600 leading-relaxed">
               {t('credential_manager_desc')}
             </p>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Notion Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <img src="/Notion_app_logo.png" alt="Notion" className="w-6 h-6 rounded" />
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('notion_configuration')}</h4>
               </div>
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="rounded-xl border border-gray-200 bg-white p-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('integration_token')}</label>
                 <div className="relative">
                   <input
@@ -113,13 +115,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     value={notionToken}
                     onChange={(e) => setNotionToken(e.target.value)}
                     placeholder="secret_..."
-                    className="block w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all pr-10"
+                    className="block w-full rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all pr-8"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="h-px my-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
+            <div className="h-px my-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
 
             {/* Lark Section */}
             <div className="space-y-4">
@@ -127,8 +129,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 <img src="/Lark_Suite_logo_2022.png" alt="Lark" className="w-6 h-6 rounded" />
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('lark_configuration')}</h4>
               </div>
-              <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('app_id')}</label>
                     <input
@@ -136,7 +138,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       value={larkAppId}
                       onChange={(e) => setLarkAppId(e.target.value)}
                       placeholder="cli_..."
-                      className="block w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all"
+                      className="block w-full rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all"
                     />
                   </div>
                   <div>
@@ -147,25 +149,45 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         value={larkAppSecret}
                         onChange={(e) => setLarkAppSecret(e.target.value)}
                         placeholder={t('input_secret')}
-                        className="block w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all pr-10"
+                        className="block w-full rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all pr-8"
                       />
                     </div>
                   </div>
                 </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={async ()=>{ setVerifyMsg(''); const tok = await getTenantToken(true); setVerifyMsg(tok ? t('token_verified') : t('token_failed')); }}
+                    className="mt-2 text-xs font-semibold text-[#0071E3] hover:underline"
+                  >
+                    {t('verify_credentials')}
+                  </button>
+                  {verifyMsg && <span className="text-xs text-gray-500 mt-2">{verifyMsg}</span>}
+                </div>
 
-                <div className="text-xs text-gray-500">{t('lark_note')}</div>
+                <div className="text-xs text-gray-500 leading-tight">{t('lark_note')}</div>
 
                 <div className="mt-2 space-y-3">
                   <h5 className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('saved_lark_tables')}</h5>
                   <div className="space-y-2">
-                    {larkTables.map((t) => (
-                      <div key={t.name} className="flex items-center justify-between bg-gray-50 rounded-xl border border-gray-200 px-3 py-2">
-                        <div className="text-sm text-gray-700">
-                          <span className="font-semibold">{t.name}</span>
-                          <span className="ml-2 text-gray-400">{t.appToken}</span>
-                          <span className="ml-2 text-gray-400">{t.tableId}</span>
+                    {larkTables.map((t, idx) => (
+                      <div key={`${t.appToken}:${t.tableId}`} className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-gray-50 rounded-xl border border-gray-200 px-3 py-2 items-center">
+                        <input
+                          type="text"
+                          value={t.name}
+                          onChange={(e)=>{
+                            const next = [...larkTables];
+                            next[idx] = { ...t, name: e.target.value };
+                            setLarkTables(next);
+                          }}
+                          onBlur={()=> saveLarkTables(larkTables)}
+                          className="rounded-lg border-gray-200 bg-white px-2 py-1 text-xs"
+                        />
+                        <div className="text-[11px] text-gray-500 font-mono truncate">{t.appToken}</div>
+                        <div className="text-[11px] text-gray-500 font-mono truncate flex items-center justify-between">
+                          <span>{t.tableId}</span>
+                          <button onClick={() => removeLarkTable(t.name)} className="text-red-600 text-xs font-medium">Delete</button>
                         </div>
-                        <button onClick={() => removeLarkTable(t.name)} className="text-red-600 text-xs font-medium">Delete</button>
                       </div>
                     ))}
                     {larkTables.length === 0 && (
@@ -173,7 +195,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <input
                       type="text"
                       value={newName}
@@ -204,7 +226,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
            <button
             type="button"
             onClick={() => setShowSecrets(!showSecrets)}

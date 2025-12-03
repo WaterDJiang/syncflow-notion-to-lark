@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Check, ChevronDown, RefreshCw, AlertTriangle, Settings, LayoutGrid, Table } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { hasCredentials, loadCredentials, loadLarkTables } from '../services/secureStorage';
+import { hasCredentials, loadCredentials, loadLarkTables, saveLarkTables } from '../services/secureStorage';
 import { LarkTableConfig } from '../types';
 import { fetchMe, listDatabases } from '../services/notionService';
 import { getBitableApp, listLarkTables, fetchLarkSchema } from '../services/larkService';
@@ -39,6 +39,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
   const [larkError, setLarkError] = useState('');
   const [isTestingLark, setIsTestingLark] = useState(false);
   const [larkTestMsg, setLarkTestMsg] = useState('');
+  const [saveNotice, setSaveNotice] = useState('');
 
   const isNotion = platform === 'notion';
   const { t } = useTranslation();
@@ -143,9 +144,12 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
       return;
     }
     const meta = await getBitableApp(formData.appToken);
-    if (!meta) {
+    if (!meta.ok) {
       setIsLoading(false);
-      setLarkError('Failed to validate Base token or permissions');
+      if (meta.code === 2001254040) setLarkError('Base token not found or invalid');
+      else if (meta.msg === 'no_auth') setLarkError('Tenant token missing or expired. Please check App ID & Secret.');
+      else if (meta.code === 91403) setLarkError('Permission denied. Ensure app is collaborator with edit access.');
+      else setLarkError('Failed to validate Base token or permissions');
       return;
     }
     let tableId = formData.tableId;
@@ -164,6 +168,16 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
       setIsLoading(false);
       setLarkError('No fields found in selected table');
       return;
+    }
+    const saved = loadLarkTables();
+    const exists = saved.some(s => s.appToken === formData.appToken && s.tableId === tableId);
+    if (!exists) {
+      const tables = await listLarkTables(formData.appToken);
+      const match = tables.find(t => t.id === tableId);
+      const autoName = match?.name || `Table ${tableId.slice(0, 6)}`;
+      const next = [...saved, { name: autoName, appToken: formData.appToken!, tableId }];
+      saveLarkTables(next);
+      setSaveNotice(`${t('saved_table_added')} · ${t('rename_notice')}`);
     }
     setIsLoading(false);
     onNext({ ...formData, tableId });
@@ -337,6 +351,9 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
               )}
               {larkTestMsg && (
                 <div className="bg-blue-50 rounded-2xl p-3 border border-blue-100 text-blue-700 text-xs">{larkTestMsg}</div>
+              )}
+              {saveNotice && (
+                <div className="bg-green-50 rounded-2xl p-3 border border-green-100 text-green-700 text-xs">{saveNotice}</div>
               )}
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">{t('saved_lark_tables')}</label>

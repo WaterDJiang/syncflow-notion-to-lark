@@ -62,4 +62,11 @@
   "identified_via_token": "已通过保存的集成令牌识别",
   "connecting": "正在连接...",
   "bitable_url_hint": "在你的多维表链接中可找到"
+  ,
+  "verify_credentials": "验证凭证",
+  "token_verified": "已成功获取 tenant_token",
+  "token_failed": "获取 tenant_token 失败"
+  ,
+  "saved_table_added": "已保存该表",
+  "rename_notice": "请在设置页为其填写自定义名称，便于下次快速选择。"
 }

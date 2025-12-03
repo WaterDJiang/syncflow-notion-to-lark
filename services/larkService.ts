@@ -3,8 +3,13 @@ import { loadCredentials } from './secureStorage';
 
 const LARK_API_BASE = '/lark/open-apis';
 
-const getTenantToken = async (): Promise<string | null> => {
+let cachedTenantToken: string | null = null;
+let cachedTenantTokenExpireAt = 0;
+
+export const getTenantToken = async (forceRefresh = false): Promise<string | null> => {
   try {
+    const now = Date.now();
+    if (!forceRefresh && cachedTenantToken && cachedTenantTokenExpireAt > now + 5000) return cachedTenantToken;
     const creds = loadCredentials();
     const appId = creds?.larkAppId;
     const appSecret = creds?.larkAppSecret;
@@ -16,7 +21,10 @@ const getTenantToken = async (): Promise<string | null> => {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.tenant_access_token || null;
+    cachedTenantToken = data.tenant_access_token || null;
+    const expireSec = Number(data.expire || data.expires_in || 0);
+    cachedTenantTokenExpireAt = expireSec ? now + expireSec * 1000 : now + 30 * 60 * 1000;
+    return cachedTenantToken;
   } catch {
     return null;
   }
@@ -182,15 +190,24 @@ export const computeSelectDistribution = async (
   return dist;
 };
 
-export const getBitableApp = async (appToken: string): Promise<any | null> => {
+export const getBitableApp = async (appToken: string): Promise<{ ok: boolean; code?: number; msg?: string; data?: any }> => {
   try {
-    const headers = await getAuthHeaders();
-    if (!headers) return null;
-    const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}`, { headers });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
+    let headers = await getAuthHeaders();
+    if (!headers) return { ok: false, msg: 'no_auth' };
+    let res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}`, { headers });
+    if (res.status === 401 || res.status === 403) {
+      const refreshed = await getTenantToken(true);
+      headers = refreshed ? { Authorization: `Bearer ${refreshed}` } : null;
+      if (!headers) return { ok: false, msg: 'no_auth' };
+      res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}`, { headers });
+    }
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || (typeof json.code === 'number' && json.code !== 0)) {
+      return { ok: false, code: json.code, msg: json.msg, data: json };
+    }
+    return { ok: true, data: json };
+  } catch (e) {
+    return { ok: false, msg: 'network_error' };
   }
 };
 

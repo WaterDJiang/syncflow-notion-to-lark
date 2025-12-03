@@ -61,4 +61,11 @@
   "identified_via_token": "Identified via stored integration token",
   "connecting": "Connecting...",
   "bitable_url_hint": "Found in your Bitable URL"
+  ,
+  "verify_credentials": "Verify Credentials",
+  "token_verified": "Tenant token obtained successfully",
+  "token_failed": "Failed to obtain tenant token"
+  ,
+  "saved_table_added": "Saved table created",
+  "rename_notice": "Please set a custom name in Settings for quick selection next time."
 }
