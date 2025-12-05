@@ -105,13 +105,13 @@ const SyncStep: React.FC<SyncStepProps> = ({ logs, isSyncing, onStart, onReset, 
                 </div>
                 {op.op === 'create_app' && (
                   <div className="grid grid-cols-2 gap-2">
-                    <input value={newAppName} onChange={(e)=>setNewAppName(e.target.value)} placeholder="新表名称" className="rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-xs" />
-                    <input value={copyFolderToken} onChange={(e)=>setCopyFolderToken(e.target.value)} placeholder="文件夹 Token 可选" className="rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-xs" />
+                    <input value={newAppName} onChange={(e)=>setNewAppName(e.target.value)} placeholder={t('new_table_name')} className="rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-xs" />
+                    <input value={copyFolderToken} onChange={(e)=>setCopyFolderToken(e.target.value)} placeholder={t('folder_token_optional')} className="rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-xs" />
                   </div>
                 )}
                 {op.op === 'update_app' && (
                   <div className="grid grid-cols-1 gap-2">
-                    <input value={newAppName} onChange={(e)=>setNewAppName(e.target.value)} placeholder="新的表名称" className="rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-xs" />
+                    <input value={newAppName} onChange={(e)=>setNewAppName(e.target.value)} placeholder={t('updated_table_name')} className="rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-xs" />
                   </div>
                 )}
                 <button
@@ -127,7 +127,7 @@ const SyncStep: React.FC<SyncStepProps> = ({ logs, isSyncing, onStart, onReset, 
             {isSyncing && (
                  <button disabled className="w-full flex items-center justify-center py-4 px-4 bg-gray-100 text-gray-400 rounded-2xl text-sm font-medium cursor-not-allowed">
                    <Loader2 size={18} className="animate-spin mr-2" />
-                   Processing...
+                   {t('processing')}
                  </button>
             )}
 
@@ -151,7 +151,7 @@ const SyncStep: React.FC<SyncStepProps> = ({ logs, isSyncing, onStart, onReset, 
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
                 <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
             </div>
-            <div className="text-xs font-medium text-gray-400">process_log.txt</div>
+            <div className="text-xs font-medium text-gray-400">{t('console_title')}</div>
             <div className="w-10"></div> {/* Spacer for centering */}
           </div>
           
@@ -164,7 +164,7 @@ const SyncStep: React.FC<SyncStepProps> = ({ logs, isSyncing, onStart, onReset, 
                     <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
                         <Play size={24} className="ml-1 opacity-50" />
                     </div>
-                    <p>Ready to execute synchronization task.</p>
+                    <p>{t('ready_to_sync')}</p>
                 </div>
             )}
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './src/i18n';
 import Header from './components/Header';
+import Landing from './components/Landing';
 import StepWizard from './components/StepWizard';
 import ConfigStep from './components/ConfigStep';
 import MappingStep from './components/MappingStep';
@@ -26,6 +27,7 @@ function App() {
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
 
   const addLog = (message: string, level: LogEntry['level'] = 'info') => {
     setState(prev => ({
@@ -212,8 +214,13 @@ function App() {
       />
 
       <main className="flex-grow container mx-auto px-4 sm:px-6">
+        {showLanding ? (
+          <div className="mt-6">
+            <Landing onStartSync={() => setShowLanding(false)} onOpenSettings={() => setIsSettingsOpen(true)} />
+          </div>
+        ) : (
+        <>
         <StepWizard currentStep={state.step} onSelectStep={(step) => setState(prev => ({ ...prev, step }))} />
-        
         <div className="mt-8 transition-all duration-500 ease-in-out">
           {state.step === AppStep.CONFIG_NOTION && (
             <ConfigStep 
@@ -253,6 +260,8 @@ function App() {
             />
           )}
         </div>
+        </>
+        )}
       </main>
       
       <footer className="py-8 text-center text-xs text-gray-400">

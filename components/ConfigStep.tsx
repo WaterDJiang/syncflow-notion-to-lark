@@ -146,10 +146,10 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
     const meta = await getBitableApp(formData.appToken);
     if (!meta.ok) {
       setIsLoading(false);
-      if (meta.code === 2001254040) setLarkError('Base token not found or invalid');
-      else if (meta.msg === 'no_auth') setLarkError('Tenant token missing or expired. Please check App ID & Secret.');
-      else if (meta.code === 91403) setLarkError('Permission denied. Ensure app is collaborator with edit access.');
-      else setLarkError('Failed to validate Base token or permissions');
+      if (meta.code === 2001254040) setLarkError(t('lark_token_invalid'));
+      else if (meta.msg === 'no_auth') setLarkError(t('tenant_token_missing'));
+      else if (meta.code === 91403) setLarkError(t('permission_denied'));
+      else setLarkError(t('validate_failed'));
       return;
     }
     let tableId = formData.tableId;
@@ -157,7 +157,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
       const tables = await listLarkTables(formData.appToken);
       if (tables.length === 0) {
         setIsLoading(false);
-        setLarkError('No tables found in Base');
+        setLarkError(t('no_base_tables'));
         return;
       }
       tableId = tables[0].id;
@@ -166,7 +166,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
     const fields = await fetchLarkSchema(formData.appToken, tableId);
     if (fields.length === 0) {
       setIsLoading(false);
-      setLarkError('No fields found in selected table');
+      setLarkError(t('no_fields_found'));
       return;
     }
     const saved = loadLarkTables();
@@ -384,7 +384,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
                         </button>
                       ))}
                       {larkTables.length === 0 && (
-                        <div className="px-3 py-2 text-xs text-gray-400">No saved tables</div>
+                        <div className="px-3 py-2 text-xs text-gray-400">{t('no_saved_tables')}</div>
                       )}
                     </div>
                   </div>
@@ -399,7 +399,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
                     setLarkError('');
                     const tokenOk = await getBitableApp(formData.appToken);
                     if (!tokenOk) {
-                      setLarkTestMsg('Base token 校验失败或无权限');
+                      setLarkTestMsg(t('test_failed_no_permission'));
                       setIsTestingLark(false);
                       return;
                     }
@@ -409,13 +409,16 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
                       const fields = await fetchLarkSchema(formData.appToken, formData.tableId);
                       fieldsCount = fields.length;
                     }
-                    setLarkTestMsg(`Base OK · Tables ${tables.length}${formData.tableId ? ` · Fields ${fieldsCount}` : ''}`);
+                    setLarkTestMsg(formData.tableId
+                      ? t('test_ok_summary', { tables: tables.length, fields: fieldsCount })
+                      : t('test_ok_tables_only', { tables: tables.length })
+                    );
                     setIsTestingLark(false);
                   }}
                   disabled={isTestingLark || !formData.appToken}
                   className="mt-2 text-xs font-semibold text-[#0071E3] hover:underline disabled:opacity-50"
                 >
-                  {isTestingLark ? 'Testing...' : t('test_connection')}
+                  {isTestingLark ? t('testing') : t('test_connection')}
                 </button>
               </div>
                <div>
@@ -429,13 +432,13 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
                     name="appToken" // Keep state name compatible
                     value={formData.appToken || ''}
                     onChange={handleChange}
-                    placeholder="e.g. bascn..."
+                    placeholder={t('bitable_url_hint') + ' /base/bascn...'}
                     className="block w-full rounded-2xl border-gray-200 bg-gray-50 pl-11 pr-4 py-3.5 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all"
                     required
                   />
                 </div>
                 <p className="mt-2 text-[10px] text-gray-400 ml-1">
-                    Found in your Bitable URL: /base/<span className="font-mono text-gray-500">bascnXXXXXXXX</span>
+                    {t('bitable_url_hint_full', { token: 'bascnXXXXXXXX' })}
                 </p>
               </div>
 
@@ -457,7 +460,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
                 </div>
                 {apiTables.length > 0 && (
                   <div className="mt-2">
-                    <button type="button" onClick={() => setShowApiTableDropdown(!showApiTableDropdown)} className="text-xs text-[#0071E3] hover:underline">Select from Base tables</button>
+                    <button type="button" onClick={() => setShowApiTableDropdown(!showApiTableDropdown)} className="text-xs text-[#0071E3] hover:underline">{t('select_from_base_tables')}</button>
                     {showApiTableDropdown && (
                       <div className="mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                         <div className="max-h-60 overflow-y-auto p-2 space-y-1">
@@ -488,7 +491,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
                     type="button" 
                     onClick={onOpenSettings}
                     className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-50"
-                    title="Settings"
+                    title={t('settings')}
                 >
                     <Settings size={20} />
                 </button>
@@ -502,7 +505,7 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
                         <RefreshCw className="animate-spin h-5 w-5" />
                     ) : (
                         <>
-                            <span>Continue</span>
+                            <span>{t('continue')}</span>
                             <ArrowRight className="ml-2 h-4 w-4 stroke-[3px]" />
                         </>
                     )}
