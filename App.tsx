@@ -265,7 +265,19 @@ function App() {
       </main>
       
       <footer className="py-8 text-center text-xs text-gray-400">
-          <p>&copy; {new Date().getFullYear()} SyncFlow. Built for high-performance teams.</p>
+          <p>
+            &copy; {new Date().getFullYear()} SyncFlow. Built for high-performance teams
+            <span className="mx-2">·</span>
+            More works
+            <a
+              href="https://www.wattter.cn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-2 inline-flex items-center px-2 py-1 rounded-full bg-gray-900 border border-gray-800 text-[11px] text-gray-500 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+            >
+              wattter.cn
+            </a>
+          </p>
       </footer>
     </div>
   );
