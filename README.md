@@ -66,6 +66,12 @@ GEMINI_API_KEY=your_key_here
 
 Currently the core sync flow does not require any env variables; all credentials are set in the Settings modal.
 
+## Deployment
+
+- Dev uses proxy paths `/notion` and `/lark/open-apis` configured in `vite.config.ts`.
+- In production, the app automatically switches to `https://api.notion.com` and `https://open.feishu.cn/open-apis` via `import.meta.env.PROD` checks in services.
+- Host under a root path or configure Vite `base` when deploying to a subpath.
+
 ## Scripts
 
 - `npm run dev` — start Vite dev server

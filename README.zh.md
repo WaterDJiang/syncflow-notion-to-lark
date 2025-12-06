@@ -65,6 +65,12 @@ GEMINI_API_KEY=your_key_here
 
 当前核心同步功能不依赖任何环境变量；凭证均在设置弹窗中完成。
 
+## 部署说明
+
+- 开发环境通过 `vite.config.ts` 的代理使用 `/notion` 与 `/lark/open-apis` 路径。
+- 生产环境会自动切换到 `https://api.notion.com` 与 `https://open.feishu.cn/open-apis`（在服务文件中通过 `import.meta.env.PROD` 判断）。
+- 如部署在子路径（非根目录），请在 Vite 配置 `base` 或确保资源路径正确。
+
 ## 脚本
 
 - `npm run dev` — 启动开发服务器
@@ -83,4 +89,3 @@ GEMINI_API_KEY=your_key_here
 使用 React、Vite、Tailwind 风格工具类、`lucide-react`、`react-i18next` 构建。
 
 更多作品 · `https://www.wattter.cn`
-

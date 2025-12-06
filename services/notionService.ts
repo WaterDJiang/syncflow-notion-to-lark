@@ -3,7 +3,7 @@ import { loadCredentials } from './secureStorage';
 
 type NotionDatabaseSummary = { id: string; title: string; icon?: string };
 
-const NOTION_API_BASE = '/notion';
+const NOTION_API_BASE = import.meta.env.PROD ? 'https://api.notion.com' : '/notion';
 const NOTION_VERSION = '2022-06-28';
 
 const getNotionHeaders = (token: string) => ({
@@ -107,7 +107,7 @@ export const fetchNotionRecordsSample = async (databaseId: string, limit = 50): 
     const creds = loadCredentials();
     const token = creds?.notionToken;
     if (!token || !databaseId) return [];
-    const res = await fetch(`/notion/v1/databases/${databaseId}/query`, {
+    const res = await fetch(`${NOTION_API_BASE}/v1/databases/${databaseId}/query`, {
       method: 'POST',
       headers: getNotionHeaders(token),
       body: JSON.stringify({ page_size: Math.min(50, limit) })

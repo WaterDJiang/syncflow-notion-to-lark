@@ -1,7 +1,7 @@
 import { FieldSchema } from '../types';
 import { loadCredentials } from './secureStorage';
 
-const LARK_API_BASE = '/lark/open-apis';
+const LARK_API_BASE = import.meta.env.PROD ? 'https://open.feishu.cn/open-apis' : '/lark/open-apis';
 
 let cachedTenantToken: string | null = null;
 let cachedTenantTokenExpireAt = 0;
@@ -41,7 +41,7 @@ export const exchangeUserAccessToken = async (code: string, redirectUri?: string
     const appId = creds?.larkAppId;
     const appSecret = creds?.larkAppSecret;
     if (!appId || !appSecret || !code) return null;
-    const res = await fetch(`/lark/open-apis/authen/v2/oauth/token`, {
+    const res = await fetch(`${LARK_API_BASE}/authen/v2/oauth/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ grant_type: 'authorization_code', client_id: appId, client_secret: appSecret, code, redirect_uri: redirectUri })
