@@ -3,6 +3,10 @@
   <p>Map Notion properties to Lark Bitable fields and bulk import records with a clean, Apple-like UI.</p>
 </div>
 
+<p align="center">
+  <a href="./README.zh.md">中文说明</a>
+</p>
+
 ## Overview
 
 SyncFlow is a Vite + React app that helps you:
