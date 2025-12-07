@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Lock, Save, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Lock, Save, ShieldCheck, Eye, EyeOff, LayoutGrid, Table } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getTenantToken } from '../services/larkService';
 import { loadCredentials, saveCredentials, loadLarkTables, saveLarkTables } from '../services/secureStorage';
@@ -21,6 +21,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [newTableId, setNewTableId] = useState('');
   const { t } = useTranslation();
   const [verifyMsg, setVerifyMsg] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const canAdd = newName.trim().length > 0 && newAppToken.trim().length > 0 && newTableId.trim().length > 0;
 
   useEffect(() => {
     if (isOpen) {
@@ -30,7 +32,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         setLarkAppId(creds.larkAppId);
         setLarkAppSecret(creds.larkAppSecret);
       }
-      setLarkTables(loadLarkTables());
+      const storedTables = loadLarkTables();
+      setLarkTables(storedTables);
+      if (storedTables.length === 0) setTimeout(()=> nameInputRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
@@ -211,7 +215,54 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       </div>
                     ))}
                     {larkTables.length === 0 && (
-                      <div className="text-xs text-gray-400">{t('no_saved_tables')}</div>
+                      <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-left">
+                        <div className="flex items-center mb-2">
+                          <span className="text-sm font-semibold text-gray-800">{t('add_first_table')}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-3">{t('paste_base_table_hint')}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <input
+                            ref={nameInputRef}
+                            type="text"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder={t('name')}
+                            className="rounded-xl border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3]"
+                          />
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-2 flex items-center pointer-events-none text-gray-400">
+                              <LayoutGrid size={16} />
+                            </div>
+                            <input
+                              type="text"
+                              value={newAppToken}
+                              onChange={(e) => setNewAppToken(e.target.value)}
+                              placeholder={t('base_token')}
+                              className="pl-8 rounded-xl border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3]"
+                            />
+                          </div>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-2 flex items-center pointer-events-none text-gray-400">
+                              <Table size={16} />
+                            </div>
+                            <input
+                              type="text"
+                              value={newTableId}
+                              onChange={(e) => setNewTableId(e.target.value)}
+                              placeholder={t('table_id')}
+                              className="pl-8 rounded-xl border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3]"
+                            />
+                          </div>
+                        </div>
+                        <button
+                          onClick={addLarkTable}
+                          disabled={!canAdd}
+                          className="mt-3 px-4 py-2 rounded-xl text-sm font-semibold transition-colors 
+                                     bg-gray-900 text-white hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {t('add')}
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -238,7 +289,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       className="rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3]"
                     />
                   </div>
-                  <button onClick={addLarkTable} className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold">{t('add')}</button>
+                  <button onClick={addLarkTable} disabled={!canAdd} className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">{t('add')}</button>
                 </div>
               </div>
             </div>

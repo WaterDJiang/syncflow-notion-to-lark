@@ -1,7 +1,10 @@
 import { FieldSchema } from '../types';
 import { loadCredentials } from './secureStorage';
 
-const LARK_API_BASE = import.meta.env.PROD ? 'https://open.feishu.cn/open-apis' : '/lark/open-apis';
+const USE_PROXY = (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
+const LARK_API_BASE = USE_PROXY
+  ? '/api/lark/open-apis'
+  : (import.meta.env.PROD ? 'https://open.feishu.cn/open-apis' : '/lark/open-apis');
 
 let cachedTenantToken: string | null = null;
 let cachedTenantTokenExpireAt = 0;

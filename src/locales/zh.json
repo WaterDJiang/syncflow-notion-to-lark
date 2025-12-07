@@ -104,5 +104,8 @@
   "landing_feature_fast": "简单配置，一键同步。",
   "landing_feature_secure": "凭证本地存储并安全混淆。",
   "landing_feature_i18n": "中英文界面可快速切换。",
-  "landing_feature_batch": "通过官方 API 高效批量写入。"
+  "landing_feature_batch": "通过官方多维表 API 高效批量写入。"
+  ,
+  "add_first_table": "添加你的第一个多维表",
+  "paste_base_table_hint": "粘贴 Base Token 和表 ID，点击“添加”。"
 }

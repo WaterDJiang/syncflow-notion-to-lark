@@ -104,4 +104,7 @@
   "landing_feature_secure": "Credentials are stored locally with secure obfuscation.",
   "landing_feature_i18n": "Chinese/English interface with instant switching.",
   "landing_feature_batch": "High-volume batch create via official Bitable API."
+  ,
+  "add_first_table": "Add your first Bitable table",
+  "paste_base_table_hint": "Paste Base Token and Table ID, then click Add."
 }

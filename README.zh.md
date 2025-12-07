@@ -68,8 +68,16 @@ GEMINI_API_KEY=your_key_here
 ## 部署说明
 
 - 开发环境通过 `vite.config.ts` 的代理使用 `/notion` 与 `/lark/open-apis` 路径。
-- 生产环境会自动切换到 `https://api.notion.com` 与 `https://open.feishu.cn/open-apis`（在服务文件中通过 `import.meta.env.PROD` 判断）。
+- 生产环境两种方式：
+  - 直接调用：不设置 `VITE_USE_SERVER_PROXY` 时，前端直接请求官方域名（Notion/Lark）。
+  - 服务器代理（推荐用于飞书 CORS）：将 `VITE_USE_SERVER_PROXY` 设为 `true`，并部署 `api/notion.ts` 与 `api/lark.ts`。前端会请求 `/api/notion` 与 `/api/lark/open-apis`。
 - 如部署在子路径（非根目录），请在 Vite 配置 `base` 或确保资源路径正确。
+
+### 启用服务器代理（推荐）
+
+1. 在构建环境设置 `VITE_USE_SERVER_PROXY=true`
+2. 使用 Vercel（或兼容的平台）部署，仓库中的 `api/` 目录即为 Serverless 代理函数，已添加通用 CORS 头
+3. 凭证仍由前端设置弹窗保存；服务器不存储任何密钥
 
 ## 脚本
 

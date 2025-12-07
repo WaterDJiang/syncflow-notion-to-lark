@@ -69,8 +69,16 @@ Currently the core sync flow does not require any env variables; all credentials
 ## Deployment
 
 - Dev uses proxy paths `/notion` and `/lark/open-apis` configured in `vite.config.ts`.
-- In production, the app automatically switches to `https://api.notion.com` and `https://open.feishu.cn/open-apis` via `import.meta.env.PROD` checks in services.
+- Production options:
+  - Direct: app calls `https://api.notion.com` and `https://open.feishu.cn/open-apis` when `VITE_USE_SERVER_PROXY` is not set.
+  - Server proxy: set `VITE_USE_SERVER_PROXY=true` and deploy with serverless functions under `api/` (Vercel-compatible). Frontend will call `/api/notion` and `/api/lark/open-apis`.
 - Host under a root path or configure Vite `base` when deploying to a subpath.
+
+### Enable server proxy (recommended for Feishu CORS)
+
+1. Set `VITE_USE_SERVER_PROXY=true` in `.env` or build environment.
+2. Deploy with Vercel (or compatible): `api/notion.ts` and `api/lark.ts` will forward requests to official APIs and add permissive CORS headers.
+3. Keep credentials in Settings; no server secrets are stored.
 
 ## Scripts
 

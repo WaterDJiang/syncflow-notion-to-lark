@@ -3,7 +3,10 @@ import { loadCredentials } from './secureStorage';
 
 type NotionDatabaseSummary = { id: string; title: string; icon?: string };
 
-const NOTION_API_BASE = import.meta.env.PROD ? 'https://api.notion.com' : '/notion';
+const USE_PROXY = (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
+const NOTION_API_BASE = USE_PROXY
+  ? '/api/notion'
+  : (import.meta.env.PROD ? 'https://api.notion.com' : '/notion');
 const NOTION_VERSION = '2022-06-28';
 
 const getNotionHeaders = (token: string) => ({
