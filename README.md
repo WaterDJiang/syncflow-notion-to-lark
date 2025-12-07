@@ -73,7 +73,9 @@ Currently the core sync flow does not require any env variables; all credentials
 
 - Dev uses proxy paths `/notion` and `/lark/open-apis` configured in `vite.config.ts`.
 - Production options:
-  - Direct: app calls `https://api.notion.com` and `https://open.feishu.cn/open-apis` when `VITE_USE_SERVER_PROXY` is not set.
+  - Direct (Static Mode): set `VITE_STATIC_MODE=true` to call official APIs directly from the browser without any backend.
+    - Pros: pure static hosting
+    - Cons: relies on browser CORS and your network; corporate proxies may block preflight; Notion/Lark secrets live in the client
   - Server proxy: set `VITE_USE_SERVER_PROXY=true` and deploy with serverless functions under `api/` (Vercel-compatible). Frontend will call `/api/notion` and `/api/lark/open-apis`.
 - Host under a root path or configure Vite `base` when deploying to a subpath.
 
@@ -102,3 +104,9 @@ Currently the core sync flow does not require any env variables; all credentials
 Built with React, Vite, Tailwind-style utility classes, `lucide-react`, and `react-i18next`.
 
 More works · `https://www.wattter.cn`
+### Static-only hosting
+
+1. Set `VITE_STATIC_MODE=true` and ensure `VITE_USE_SERVER_PROXY` is not set.
+2. Host `dist/` on any static CDN.
+3. Disable system-wide HTTP proxies for your domain, or whitelist `api.notion.com` and `open.feishu.cn` as direct to avoid preflight failures.
+4. Tokens are stored client-side; use at your own risk.

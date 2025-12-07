@@ -70,6 +70,7 @@
   "notion_token_failed": "Notion token invalid or has no access",
   "proxy_online": "Server proxy online",
   "proxy_offline": "Server proxy offline",
+  "static_mode": "Static mode: calling official APIs directly",
   "saved_table_added": "Saved table created",
   "rename_notice": "Please set a custom name in Settings for quick selection next time.",
   "notion_config_tooltip": "Notion Integration Token is created in Notion developer settings and shared to the database you want to access.",

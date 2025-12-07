@@ -1,7 +1,8 @@
 import { FieldSchema } from '../types';
 import { loadCredentialsSecure } from './secureStorage';
 
-const USE_PROXY = import.meta.env.PROD ? true : (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
+const STATIC_MODE = (import.meta.env.VITE_STATIC_MODE === 'true');
+const USE_PROXY = !STATIC_MODE && (import.meta.env.PROD ? true : (import.meta.env.VITE_USE_SERVER_PROXY === 'true'));
 const LARK_API_BASE = USE_PROXY
   ? '/api/lark/open-apis'
   : (import.meta.env.PROD ? 'https://open.feishu.cn/open-apis' : '/lark/open-apis');

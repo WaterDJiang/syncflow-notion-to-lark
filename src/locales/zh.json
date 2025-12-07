@@ -71,6 +71,7 @@
   "notion_token_failed": "Notion Token 无效或无访问权限",
   "proxy_online": "服务器代理已在线",
   "proxy_offline": "服务器代理未启用或不可用",
+  "static_mode": "静态模式：直接调用官方 API",
   "saved_table_added": "已保存该表",
   "rename_notice": "请在设置页为其填写自定义名称，便于下次快速选择。",
   "notion_config_tooltip": "Notion 的 Integration Token 需在 notion 的开发者设置中创建，并将目标数据库分享给该集成。",
