@@ -14,6 +14,9 @@ const DIRECT_NOTION_BASE = 'https://api.notion.com';
 const fetchNotion = async (path: string, init: RequestInit): Promise<Response> => {
   try {
     const res = await fetch(`${NOTION_API_BASE}${path}`, init);
+    if (res.status === 405 || res.status === 404) {
+      return fetch(`${DIRECT_NOTION_BASE}${path}`, init);
+    }
     return res;
   } catch {
     if (!USE_PROXY) {

@@ -11,6 +11,9 @@ const DIRECT_LARK_BASE = 'https://open.feishu.cn/open-apis';
 const fetchLark = async (path: string, init: RequestInit): Promise<Response> => {
   try {
     const res = await fetch(`${LARK_API_BASE}${path}`, init);
+    if (res.status === 405 || res.status === 404) {
+      return fetch(`${DIRECT_LARK_BASE}${path}`, init);
+    }
     return res;
   } catch {
     if (!USE_PROXY) {
