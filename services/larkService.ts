@@ -5,6 +5,15 @@ const USE_PROXY = (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
 const LARK_API_BASE = USE_PROXY
   ? '/api/lark/open-apis'
   : (import.meta.env.PROD ? 'https://open.feishu.cn/open-apis' : '/lark/open-apis');
+const DIRECT_LARK_BASE = 'https://open.feishu.cn/open-apis';
+
+const fetchLark = async (path: string, init: RequestInit): Promise<Response> => {
+  try {
+    const res = await fetch(`${LARK_API_BASE}${path}`, init);
+    if (!(USE_PROXY && res.status === 404)) return res;
+  } catch {}
+  return fetch(`${DIRECT_LARK_BASE}${path}`, init);
+};
 
 let cachedTenantToken: string | null = null;
 let cachedTenantTokenExpireAt = 0;
@@ -17,7 +26,7 @@ export const getTenantToken = async (forceRefresh = false): Promise<string | nul
     const appId = creds?.larkAppId;
     const appSecret = creds?.larkAppSecret;
     if (!appId || !appSecret) return null;
-    const res = await fetch(`${LARK_API_BASE}/auth/v3/tenant_access_token/internal`, {
+    const res = await fetchLark(`/auth/v3/tenant_access_token/internal`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ app_id: appId, app_secret: appSecret })
@@ -44,7 +53,7 @@ export const exchangeUserAccessToken = async (code: string, redirectUri?: string
     const appId = creds?.larkAppId;
     const appSecret = creds?.larkAppSecret;
     if (!appId || !appSecret || !code) return null;
-    const res = await fetch(`${LARK_API_BASE}/authen/v2/oauth/token`, {
+    const res = await fetchLark(`/authen/v2/oauth/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ grant_type: 'authorization_code', client_id: appId, client_secret: appSecret, code, redirect_uri: redirectUri })
@@ -62,7 +71,7 @@ export const fetchLarkSchema = async (appToken: string, tableId: string): Promis
     if (!appToken || !tableId) return [];
     const headers = await getAuthHeaders();
     if (!headers) return [];
-    const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/fields`, { headers });
+    const res = await fetchLark(`/bitable/v1/apps/${appToken}/tables/${tableId}/fields`, { headers });
     const data = await res.json();
     if (!res.ok) {
       console.error('Lark fields fetch failed', data);
@@ -99,7 +108,7 @@ export const fetchLarkRecordsSample = async (appToken: string, tableId: string, 
     let pageToken: string | undefined = undefined;
     const out: LarkRecord[] = [];
     while (out.length < limit) {
-      const url = new URL(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records`);
+      const url = new URL(`${DIRECT_LARK_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records`);
       url.searchParams.set('page_size', String(Math.min(50, limit - out.length)));
       if (pageToken) url.searchParams.set('page_token', pageToken);
       const res = await fetch(url.toString(), { headers });
@@ -121,7 +130,7 @@ export const countLarkRecords = async (appToken: string, tableId: string): Promi
   try {
     const headers = await getAuthHeaders();
     if (!headers) return 0;
-    const url = new URL(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records`);
+    const url = new URL(`${DIRECT_LARK_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records`);
     url.searchParams.set('page_size', '1');
     const res = await fetch(url.toString(), { headers });
     if (!res.ok) return 0;
@@ -131,7 +140,7 @@ export const countLarkRecords = async (appToken: string, tableId: string): Promi
     let pageToken = data.data?.page_token;
     let hasMore = !!data.data?.has_more;
     while (hasMore && pageToken && total < 1000) {
-      const pageUrl = new URL(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records`);
+      const pageUrl = new URL(`${DIRECT_LARK_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records`);
       pageUrl.searchParams.set('page_size', '200');
       pageUrl.searchParams.set('page_token', pageToken);
       const pageRes = await fetch(pageUrl.toString(), { headers });
@@ -152,7 +161,7 @@ export const listLarkTables = async (appToken: string): Promise<Array<{ id: stri
   try {
     const headers = await getAuthHeaders();
     if (!headers || !appToken) return [];
-    const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables`, { headers });
+    const res = await fetchLark(`/bitable/v1/apps/${appToken}/tables`, { headers });
     const data = await res.json();
     if (!res.ok) {
       console.error('Lark tables fetch failed', data);
@@ -197,12 +206,12 @@ export const getBitableApp = async (appToken: string): Promise<{ ok: boolean; co
   try {
     let headers = await getAuthHeaders();
     if (!headers) return { ok: false, msg: 'no_auth' };
-    let res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}`, { headers });
+    let res = await fetchLark(`/bitable/v1/apps/${appToken}`, { headers });
     if (res.status === 401 || res.status === 403) {
       const refreshed = await getTenantToken(true);
       headers = refreshed ? { Authorization: `Bearer ${refreshed}` } : null;
       if (!headers) return { ok: false, msg: 'no_auth' };
-      res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}`, { headers });
+      res = await fetchLark(`/bitable/v1/apps/${appToken}`, { headers });
     }
     const json = await res.json().catch(() => ({}));
     if (!res.ok || (typeof json.code === 'number' && json.code !== 0)) {
@@ -218,7 +227,7 @@ export const updateBitableApp = async (appToken: string, params: { name?: string
   try {
     const headers = await getAuthHeaders();
     if (!headers) return false;
-    const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}`, {
+    const res = await fetchLark(`/bitable/v1/apps/${appToken}`, {
       method: 'PUT',
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ name: params.name, is_advanced: params.is_advanced })
@@ -233,7 +242,7 @@ export const copyBitableApp = async (appToken: string, payload: { name?: string;
   try {
     const headers = await getAuthHeaders();
     if (!headers) return null;
-    const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/copy`, {
+    const res = await fetchLark(`/bitable/v1/apps/${appToken}/copy`, {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify(payload)
@@ -249,7 +258,7 @@ export const createBitableApp = async (payload: { name?: string; folder_token?: 
   try {
     const headers = await getAuthHeaders();
     if (!headers) return null;
-    const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps`, {
+    const res = await fetchLark(`/bitable/v1/apps`, {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify(payload)
@@ -269,7 +278,7 @@ export const insertLarkRecords = async (appToken: string, tableId: string, recor
     const chunkSize = 500; // API single add limit per docs
     for (let i = 0; i < records.length; i += chunkSize) {
       const chunk = records.slice(i, i + chunkSize);
-      const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`, {
+      const res = await fetchLark(`/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ records: chunk })
@@ -301,7 +310,7 @@ export const batchCreateRecordsDetailed = async (
   const chunkSize = 500;
   for (let i = 0; i < records.length; i += chunkSize) {
     const chunk = records.slice(i, i + chunkSize);
-    const res = await fetch(`${LARK_API_BASE}/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`, {
+    const res = await fetchLark(`/bitable/v1/apps/${appToken}/tables/${tableId}/records/batch_create`, {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ records: chunk })

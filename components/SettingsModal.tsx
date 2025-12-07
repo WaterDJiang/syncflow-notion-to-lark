@@ -23,12 +23,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const [verifyMsg, setVerifyMsg] = useState('');
   const [notionVerifyMsg, setNotionVerifyMsg] = useState('');
+  const [proxyMsg, setProxyMsg] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
   const canAdd = newName.trim().length > 0 && newAppToken.trim().length > 0 && newTableId.trim().length > 0;
 
   useEffect(() => {
     if (isOpen) {
       (async () => {
+        try {
+          const p = await fetch('/api/ping');
+          setProxyMsg(p.ok ? t('proxy_online') : t('proxy_offline'));
+        } catch {
+          setProxyMsg(t('proxy_offline'));
+        }
         const creds = await loadCredentialsSecure();
         if (creds) {
           setNotionToken(creds.notionToken);
@@ -140,6 +147,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     {t('verify_credentials')}
                   </button>
                   {notionVerifyMsg && <span className="text-xs text-gray-500">{notionVerifyMsg}</span>}
+                  {proxyMsg && <span className="text-[11px] text-gray-400">{proxyMsg}</span>}
                 </div>
               </div>
             </div>

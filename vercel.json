@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/notion.ts": { "runtime": "edge" },
+    "api/lark.ts": { "runtime": "edge" },
+    "api/ping.ts": { "runtime": "edge" }
+  },
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

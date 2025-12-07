@@ -8,6 +8,15 @@ const NOTION_API_BASE = USE_PROXY
   ? '/api/notion'
   : (import.meta.env.PROD ? 'https://api.notion.com' : '/notion');
 const NOTION_VERSION = '2022-06-28';
+const DIRECT_NOTION_BASE = 'https://api.notion.com';
+
+const fetchNotion = async (path: string, init: RequestInit): Promise<Response> => {
+  try {
+    const res = await fetch(`${NOTION_API_BASE}${path}`, init);
+    if (!(USE_PROXY && res.status === 404)) return res;
+  } catch {}
+  return fetch(`${DIRECT_NOTION_BASE}${path}`, init);
+};
 
 const getNotionHeaders = (token: string) => ({
   Authorization: `Bearer ${token}`,
@@ -20,7 +29,7 @@ export const fetchMe = async (): Promise<{ name: string; email?: string; avatar?
     const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token) return null;
-    const res = await fetch(`${NOTION_API_BASE}/v1/users/me`, { headers: getNotionHeaders(token) });
+    const res = await fetchNotion(`/v1/users/me`, { headers: getNotionHeaders(token) });
     if (!res.ok) return null;
     const data = await res.json();
     return { name: data.name || 'Notion User', email: data.person?.email, avatar: undefined };
@@ -34,7 +43,7 @@ export const listDatabases = async (): Promise<NotionDatabaseSummary[]> => {
     const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token) return [];
-    const res = await fetch(`${NOTION_API_BASE}/v1/search`, {
+    const res = await fetchNotion(`/v1/search`, {
       method: 'POST',
       headers: getNotionHeaders(token),
       body: JSON.stringify({
@@ -73,7 +82,7 @@ export const fetchNotionSchema = async (databaseId: string): Promise<FieldSchema
     const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token || !databaseId) return [];
-    const res = await fetch(`${NOTION_API_BASE}/v1/databases/${databaseId}`, { headers: getNotionHeaders(token) });
+    const res = await fetchNotion(`/v1/databases/${databaseId}`, { headers: getNotionHeaders(token) });
     if (!res.ok) return [];
     const data = await res.json();
     const props = data.properties || {};
@@ -92,7 +101,7 @@ export const countNotionRecords = async (databaseId: string): Promise<number> =>
     const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token || !databaseId) return 0;
-    const res = await fetch(`${NOTION_API_BASE}/v1/databases/${databaseId}/query`, {
+    const res = await fetchNotion(`/v1/databases/${databaseId}/query`, {
       method: 'POST',
       headers: getNotionHeaders(token),
       body: JSON.stringify({ page_size: 50 })
@@ -110,7 +119,7 @@ export const fetchNotionRecordsSample = async (databaseId: string, limit = 50): 
     const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token || !databaseId) return [];
-    const res = await fetch(`${NOTION_API_BASE}/v1/databases/${databaseId}/query`, {
+    const res = await fetchNotion(`/v1/databases/${databaseId}/query`, {
       method: 'POST',
       headers: getNotionHeaders(token),
       body: JSON.stringify({ page_size: Math.min(50, limit) })
