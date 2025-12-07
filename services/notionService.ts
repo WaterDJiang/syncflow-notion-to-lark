@@ -3,7 +3,7 @@ import { loadCredentialsSecure } from './secureStorage';
 
 type NotionDatabaseSummary = { id: string; title: string; icon?: string };
 
-const USE_PROXY = (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
+const USE_PROXY = import.meta.env.PROD ? true : (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
 const NOTION_API_BASE = USE_PROXY
   ? '/api/notion'
   : (import.meta.env.PROD ? 'https://api.notion.com' : '/notion');
@@ -13,9 +13,13 @@ const DIRECT_NOTION_BASE = 'https://api.notion.com';
 const fetchNotion = async (path: string, init: RequestInit): Promise<Response> => {
   try {
     const res = await fetch(`${NOTION_API_BASE}${path}`, init);
-    if (!(USE_PROXY && res.status === 404)) return res;
-  } catch {}
-  return fetch(`${DIRECT_NOTION_BASE}${path}`, init);
+    return res;
+  } catch {
+    if (!USE_PROXY) {
+      return fetch(`${DIRECT_NOTION_BASE}${path}`, init);
+    }
+    return new Response(JSON.stringify({ error: 'proxy_unavailable' }), { status: 599, headers: { 'Content-Type': 'application/json' } });
+  }
 };
 
 const getNotionHeaders = (token: string) => ({

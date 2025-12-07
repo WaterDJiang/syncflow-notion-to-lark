@@ -1,7 +1,7 @@
 import { FieldSchema } from '../types';
 import { loadCredentialsSecure } from './secureStorage';
 
-const USE_PROXY = (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
+const USE_PROXY = import.meta.env.PROD ? true : (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
 const LARK_API_BASE = USE_PROXY
   ? '/api/lark/open-apis'
   : (import.meta.env.PROD ? 'https://open.feishu.cn/open-apis' : '/lark/open-apis');
@@ -10,9 +10,13 @@ const DIRECT_LARK_BASE = 'https://open.feishu.cn/open-apis';
 const fetchLark = async (path: string, init: RequestInit): Promise<Response> => {
   try {
     const res = await fetch(`${LARK_API_BASE}${path}`, init);
-    if (!(USE_PROXY && res.status === 404)) return res;
-  } catch {}
-  return fetch(`${DIRECT_LARK_BASE}${path}`, init);
+    return res;
+  } catch {
+    if (!USE_PROXY) {
+      return fetch(`${DIRECT_LARK_BASE}${path}`, init);
+    }
+    return new Response(JSON.stringify({ error: 'proxy_unavailable' }), { status: 599, headers: { 'Content-Type': 'application/json' } });
+  }
 };
 
 let cachedTenantToken: string | null = null;

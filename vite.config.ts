@@ -9,6 +9,16 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
         proxy: {
+          '/api/notion': {
+            target: 'https://api.notion.com',
+            changeOrigin: true,
+            rewrite: (p) => p.replace(/^\/api\/notion/, '')
+          },
+          '/api/lark': {
+            target: 'https://open.feishu.cn',
+            changeOrigin: true,
+            rewrite: (p) => p.replace(/^\/api\/lark/, '')
+          },
           '/notion': {
             target: 'https://api.notion.com',
             changeOrigin: true,

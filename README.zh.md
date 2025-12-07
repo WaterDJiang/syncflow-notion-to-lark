@@ -79,6 +79,14 @@ GEMINI_API_KEY=your_key_here
 2. 使用 Vercel（或兼容的平台）部署，仓库中的 `api/` 目录即为 Serverless 代理函数，已添加通用 CORS 头
 3. 凭证仍由前端设置弹窗保存；服务器不存储任何密钥
 
+### 在 Zeabur 部署（Node 服务方式）
+
+1. 新建 Node Service，绑定此仓库。
+2. 构建命令：`npm run build`；启动命令：`npm run start`。
+3. 环境变量：添加 `VITE_USE_SERVER_PROXY=true`。
+4. 访问地址下的 `/api/notion/*` 与 `/api/lark/*` 将由 `server.mjs` 代理官方 API；其他路径由 `dist` 提供前端页面。
+5. 在 Settings 页面查看“服务器代理已在线”，并用“验证凭证”确认连通。
+
 ## 脚本
 
 - `npm run dev` — 启动开发服务器
