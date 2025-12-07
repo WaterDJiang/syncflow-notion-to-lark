@@ -67,6 +67,8 @@
   "token_verified": "已成功获取 tenant_token",
   "token_failed": "获取 tenant_token 失败"
   ,
+  "notion_token_verified": "Notion Token 有效",
+  "notion_token_failed": "Notion Token 无效或无访问权限",
   "saved_table_added": "已保存该表",
   "rename_notice": "请在设置页为其填写自定义名称，便于下次快速选择。",
   "notion_config_tooltip": "Notion 的 Integration Token 需在 notion 的开发者设置中创建，并将目标数据库分享给该集成。",

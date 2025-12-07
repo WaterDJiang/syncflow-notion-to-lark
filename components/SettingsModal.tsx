@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Lock, Save, ShieldCheck, Eye, EyeOff, LayoutGrid, Table } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getTenantToken } from '../services/larkService';
+import { fetchMe } from '../services/notionService';
 import { loadCredentialsSecure, saveCredentials, loadLarkTables, saveLarkTables } from '../services/secureStorage';
 import { LarkTableConfig } from '../types';
 
@@ -21,6 +22,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [newTableId, setNewTableId] = useState('');
   const { t } = useTranslation();
   const [verifyMsg, setVerifyMsg] = useState('');
+  const [notionVerifyMsg, setNotionVerifyMsg] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
   const canAdd = newName.trim().length > 0 && newAppToken.trim().length > 0 && newTableId.trim().length > 0;
 
@@ -128,6 +130,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     placeholder="secret_..."
                     className="block w-full rounded-xl border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-[#0071E3] focus:ring-[#0071E3] focus:bg-white transition-all pr-8"
                   />
+                </div>
+                <div className="flex items-center space-x-3 mt-2">
+                  <button
+                    type="button"
+                    onClick={async ()=>{ setNotionVerifyMsg(''); const me = await fetchMe(); setNotionVerifyMsg(me ? t('notion_token_verified') : t('notion_token_failed')); }}
+                    className="text-xs font-semibold text-[#0071E3] hover:underline"
+                  >
+                    {t('verify_credentials')}
+                  </button>
+                  {notionVerifyMsg && <span className="text-xs text-gray-500">{notionVerifyMsg}</span>}
                 </div>
               </div>
             </div>
