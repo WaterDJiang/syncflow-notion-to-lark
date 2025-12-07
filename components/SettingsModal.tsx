@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Lock, Save, ShieldCheck, Eye, EyeOff, LayoutGrid, Table } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getTenantToken } from '../services/larkService';
-import { loadCredentials, saveCredentials, loadLarkTables, saveLarkTables } from '../services/secureStorage';
+import { loadCredentialsSecure, saveCredentials, loadLarkTables, saveLarkTables } from '../services/secureStorage';
 import { LarkTableConfig } from '../types';
 
 interface SettingsModalProps {
@@ -26,28 +26,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
-      const creds = loadCredentials();
-      if (creds) {
-        setNotionToken(creds.notionToken);
-        setLarkAppId(creds.larkAppId);
-        setLarkAppSecret(creds.larkAppSecret);
-      }
-      const storedTables = loadLarkTables();
-      setLarkTables(storedTables);
-      if (storedTables.length === 0) setTimeout(()=> nameInputRef.current?.focus(), 100);
+      (async () => {
+        const creds = await loadCredentialsSecure();
+        if (creds) {
+          setNotionToken(creds.notionToken);
+          setLarkAppId(creds.larkAppId);
+          setLarkAppSecret(creds.larkAppSecret);
+        }
+        const storedTables = await loadLarkTables();
+        setLarkTables(storedTables);
+        if (storedTables.length === 0) setTimeout(()=> nameInputRef.current?.focus(), 100);
+      })();
     }
   }, [isOpen]);
 
-  const handleSave = () => {
-    const creds = loadCredentials();
+  const handleSave = async () => {
     const next = {
       notionToken,
       larkAppId,
       larkAppSecret,
       larkTables: larkTables
     };
-    saveCredentials(next as any);
-    saveLarkTables(larkTables);
+    await saveCredentials(next as any);
+    await saveLarkTables(larkTables);
     onClose();
   };
 

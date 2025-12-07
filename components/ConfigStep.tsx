@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Check, ChevronDown, RefreshCw, AlertTriangle, Settings, LayoutGrid, Table } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { hasCredentials, loadCredentials, loadLarkTables, saveLarkTables } from '../services/secureStorage';
+import { hasCredentials, loadCredentialsSecure, loadLarkTables, saveLarkTables } from '../services/secureStorage';
 import { LarkTableConfig } from '../types';
 import { fetchMe, listDatabases } from '../services/notionService';
 import { getBitableApp, listLarkTables, fetchLarkSchema } from '../services/larkService';
@@ -46,30 +46,25 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
 
   // Check storage on mount
   useEffect(() => {
-    const checkKeys = () => {
-      const stored = loadCredentials();
-      if (isNotion) {
-        setHasKeys(!!stored?.notionToken);
-      } else {
-        setHasKeys(!!stored?.larkAppId && !!stored?.larkAppSecret);
-      }
+    const checkKeys = async () => {
+      const stored = await loadCredentialsSecure();
+      if (isNotion) setHasKeys(!!stored?.notionToken); else setHasKeys(!!stored?.larkAppId && !!stored?.larkAppSecret);
     };
-    
     checkKeys();
-    // Re-check every second in case settings modal updated it (simple polling for demo)
     const interval = setInterval(checkKeys, 1000);
     return () => clearInterval(interval);
   }, [isNotion]);
 
   useEffect(() => {
-    if (!isNotion) {
-      setLarkTables(loadLarkTables());
-    }
+    const runLoad = async () => {
+      if (!isNotion) setLarkTables(await loadLarkTables());
+    };
+    runLoad();
   }, [isNotion, hasKeys]);
 
   useEffect(() => {
     const run = async () => {
-      const stored = loadCredentials();
+      const stored = await loadCredentialsSecure();
       if (!isNotion && stored?.larkAppId && stored?.larkAppSecret && formData.appToken) {
         const list = await listLarkTables(formData.appToken);
         setApiTables(list);
@@ -169,14 +164,14 @@ const ConfigStep: React.FC<ConfigStepProps> = ({ platform, initialData, onNext, 
       setLarkError(t('no_fields_found'));
       return;
     }
-    const saved = loadLarkTables();
+    const saved = await loadLarkTables();
     const exists = saved.some(s => s.appToken === formData.appToken && s.tableId === tableId);
     if (!exists) {
       const tables = await listLarkTables(formData.appToken);
       const match = tables.find(t => t.id === tableId);
       const autoName = match?.name || `Table ${tableId.slice(0, 6)}`;
       const next = [...saved, { name: autoName, appToken: formData.appToken!, tableId }];
-      saveLarkTables(next);
+      await saveLarkTables(next);
       setSaveNotice(`${t('saved_table_added')} · ${t('rename_notice')}`);
     }
     setIsLoading(false);

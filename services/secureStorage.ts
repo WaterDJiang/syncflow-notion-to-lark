@@ -1,48 +1,80 @@
 import { UserCredentials, LarkTableConfig } from '../types';
 
 const STORAGE_KEY = 'syncflow_secure_creds';
-const SALT = 'sf_v1_salt_'; // Simple salt to prevent plain text visibility
+const V1_SALT = 'sf_v1_salt_';
 
-// Simple obfuscation to prevent plain text reading in LocalStorage tools
-// Note: Client-side encryption is never 100% secure against a determined attacker with console access.
-// This prevents shoulder surfing and accidental exposure.
-const obfuscate = (text: string): string => {
-  try {
-    return btoa(SALT + encodeURIComponent(text));
-  } catch (e) {
-    return text;
+const enc = new TextEncoder();
+
+const getSalt = (): string => {
+  let s = localStorage.getItem('syncflow_device_salt');
+  if (!s) {
+    const buf = new Uint8Array(16);
+    crypto.getRandomValues(buf);
+    s = Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
+    localStorage.setItem('syncflow_device_salt', s);
   }
+  return s;
 };
 
-const deobfuscate = (hash: string): string => {
+const deriveKey = async (): Promise<CryptoKey> => {
+  const base = `${navigator.userAgent}|${navigator.language}|${navigator.platform}|${getSalt()}`;
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(base), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', iterations: 120000, salt: enc.encode('syncflow_v2') }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+};
+
+const v1Obfuscate = (text: string): string => {
+  try { return btoa(V1_SALT + encodeURIComponent(text)); } catch { return text; }
+};
+const v1Deobfuscate = (hash: string): string => {
   try {
     const decoded = decodeURIComponent(atob(hash));
-    if (decoded.startsWith(SALT)) {
-      return decoded.slice(SALT.length);
-    }
-    return '';
-  } catch (e) {
-    return '';
-  }
+    return decoded.startsWith(V1_SALT) ? decoded.slice(V1_SALT.length) : '';
+  } catch { return ''; }
 };
 
-export const saveCredentials = (creds: UserCredentials) => {
-  const payload = JSON.stringify(creds);
-  localStorage.setItem(STORAGE_KEY, obfuscate(payload));
+export const saveCredentials = async (creds: UserCredentials) => {
+  const key = await deriveKey();
+  const iv = new Uint8Array(12);
+  crypto.getRandomValues(iv);
+  const data = enc.encode(JSON.stringify(creds));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+  const blob = { v: 2, iv: btoa(String.fromCharCode(...iv)), data: btoa(String.fromCharCode(...new Uint8Array(ct))) };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(blob));
 };
 
 export const loadCredentials = (): UserCredentials | null => {
-  const hash = localStorage.getItem(STORAGE_KEY);
-  if (!hash) return null;
-
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
   try {
-    const json = deobfuscate(hash);
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.v === 2 && typeof parsed.iv === 'string' && typeof parsed.data === 'string') {
+      return null;
+    }
+  } catch {}
+  try {
+    const json = v1Deobfuscate(raw);
     if (!json) return null;
     return JSON.parse(json) as UserCredentials;
-  } catch (e) {
-    console.error("Failed to parse credentials", e);
-    return null;
-  }
+  } catch { return null; }
+};
+
+export const loadCredentialsSecure = async (): Promise<UserCredentials | null> => {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.v === 2) {
+      const key = await deriveKey();
+      const iv = Uint8Array.from(atob(parsed.iv), c => c.charCodeAt(0));
+      const data = Uint8Array.from(atob(parsed.data), c => c.charCodeAt(0));
+      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+      return JSON.parse(new TextDecoder().decode(new Uint8Array(pt))) as UserCredentials;
+    }
+  } catch {}
+  const legacy = loadCredentials();
+  if (!legacy) return null;
+  await saveCredentials(legacy);
+  return legacy;
 };
 
 export const clearCredentials = () => {
@@ -53,13 +85,13 @@ export const hasCredentials = (): boolean => {
   return !!localStorage.getItem(STORAGE_KEY);
 };
 
-export const loadLarkTables = (): LarkTableConfig[] => {
-  const creds = loadCredentials();
+export const loadLarkTables = async (): Promise<LarkTableConfig[]> => {
+  const creds = await loadCredentialsSecure();
   return creds?.larkTables || [];
 };
 
-export const saveLarkTables = (tables: LarkTableConfig[]) => {
-  const existing = loadCredentials() || { notionToken: '', larkAppId: '', larkAppSecret: '' };
+export const saveLarkTables = async (tables: LarkTableConfig[]) => {
+  const existing = await loadCredentialsSecure() || { notionToken: '', larkAppId: '', larkAppSecret: '' };
   const next: UserCredentials = { ...existing, larkTables: tables } as UserCredentials;
-  saveCredentials(next);
+  await saveCredentials(next);
 };

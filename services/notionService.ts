@@ -1,5 +1,5 @@
 import { FieldSchema } from '../types';
-import { loadCredentials } from './secureStorage';
+import { loadCredentialsSecure } from './secureStorage';
 
 type NotionDatabaseSummary = { id: string; title: string; icon?: string };
 
@@ -17,7 +17,7 @@ const getNotionHeaders = (token: string) => ({
 
 export const fetchMe = async (): Promise<{ name: string; email?: string; avatar?: string } | null> => {
   try {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token) return null;
     const res = await fetch(`${NOTION_API_BASE}/v1/users/me`, { headers: getNotionHeaders(token) });
@@ -31,7 +31,7 @@ export const fetchMe = async (): Promise<{ name: string; email?: string; avatar?
 
 export const listDatabases = async (): Promise<NotionDatabaseSummary[]> => {
   try {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token) return [];
     const res = await fetch(`${NOTION_API_BASE}/v1/search`, {
@@ -70,7 +70,7 @@ const mapNotionPropertyType = (prop: any): FieldSchema['type'] => {
 
 export const fetchNotionSchema = async (databaseId: string): Promise<FieldSchema[]> => {
   try {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token || !databaseId) return [];
     const res = await fetch(`${NOTION_API_BASE}/v1/databases/${databaseId}`, { headers: getNotionHeaders(token) });
@@ -89,7 +89,7 @@ export const fetchNotionSchema = async (databaseId: string): Promise<FieldSchema
 
 export const countNotionRecords = async (databaseId: string): Promise<number> => {
   try {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token || !databaseId) return 0;
     const res = await fetch(`${NOTION_API_BASE}/v1/databases/${databaseId}/query`, {
@@ -107,7 +107,7 @@ export const countNotionRecords = async (databaseId: string): Promise<number> =>
 
 export const fetchNotionRecordsSample = async (databaseId: string, limit = 50): Promise<any[]> => {
   try {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const token = creds?.notionToken;
     if (!token || !databaseId) return [];
     const res = await fetch(`${NOTION_API_BASE}/v1/databases/${databaseId}/query`, {

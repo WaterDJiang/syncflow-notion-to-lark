@@ -1,5 +1,5 @@
 import { FieldSchema } from '../types';
-import { loadCredentials } from './secureStorage';
+import { loadCredentialsSecure } from './secureStorage';
 
 const USE_PROXY = (import.meta.env.VITE_USE_SERVER_PROXY === 'true');
 const LARK_API_BASE = USE_PROXY
@@ -13,7 +13,7 @@ export const getTenantToken = async (forceRefresh = false): Promise<string | nul
   try {
     const now = Date.now();
     if (!forceRefresh && cachedTenantToken && cachedTenantTokenExpireAt > now + 5000) return cachedTenantToken;
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const appId = creds?.larkAppId;
     const appSecret = creds?.larkAppSecret;
     if (!appId || !appSecret) return null;
@@ -40,7 +40,7 @@ const getAuthHeaders = async (): Promise<HeadersInit | null> => {
 
 export const exchangeUserAccessToken = async (code: string, redirectUri?: string): Promise<{ access_token?: string; refresh_token?: string; expires_in?: number } | null> => {
   try {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const appId = creds?.larkAppId;
     const appSecret = creds?.larkAppSecret;
     if (!appId || !appSecret || !code) return null;

@@ -15,6 +15,8 @@ SyncFlow is a Vite + React app that helps you:
 - Map Notion properties to Bitable fields
 - Bulk import records using the official Bitable batch create API
 - Store credentials locally (securely obfuscated) and support Chinese/English UI
+  
+Security: Credentials are encrypted at rest using AES‑GCM with a device‑salted key derived via PBKDF2 and auto‑migrated from the previous obfuscation format.
 
 The app opens with a landing page. Click “Start Sync” to enter the step-by-step wizard: Connect Notion → Connect Lark → Map Fields → Sync.
 
@@ -53,6 +55,7 @@ Prerequisites: Node.js 18+
 ## Configuration
 
 - Credentials are stored via local secure storage (`services/secureStorage.ts`). They are never sent to any server.
+- Storage uses AES‑GCM encryption with per‑save IV and device‑salted PBKDF2 key derivation.
 - Lark tenant token is resolved on demand and refreshed for 401/403.
 - Saved tables let you reuse Base Token & Table ID; you can rename entries in Settings.
 

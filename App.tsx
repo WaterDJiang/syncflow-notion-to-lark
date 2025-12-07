@@ -12,7 +12,7 @@ import { fetchNotionSchema, countNotionRecords } from './services/notionService'
 import { computeSelectDistribution, fetchLarkRecordsSample } from './services/larkService';
 import { fetchLarkSchema, createBitableApp, updateBitableApp, copyBitableApp, insertLarkRecords, listLarkTables, getBitableApp, batchCreateRecordsDetailed } from './services/larkService';
 import { fetchNotionRecordsSample } from './services/notionService';
-import { loadCredentials } from './services/secureStorage';
+import { loadCredentialsSecure } from './services/secureStorage';
 
 function App() {
   const [state, setState] = useState<AppState>({
@@ -42,7 +42,7 @@ function App() {
   };
 
   const handleNotionSubmit = async (config: NotionConfig) => {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const hasToken = !!creds?.notionToken;
     let schema = [] as any[];
     if (hasToken && config.databaseId) {
@@ -57,7 +57,7 @@ function App() {
   };
 
   const handleLarkSubmit = async (config: LarkConfig) => {
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const hasApp = !!creds?.larkAppId && !!creds?.larkAppSecret;
     let schema: any[] = [];
     try {
@@ -112,7 +112,7 @@ function App() {
     addLog(`Connected to Lark Table: ${state.larkConfig.tableId}`, 'info');
 
     await new Promise(r => setTimeout(r, 500));
-    const creds = loadCredentials();
+    const creds = await loadCredentialsSecure();
     const hasToken = !!creds?.notionToken;
     let notionTotal = 0;
     if (hasToken && state.notionConfig.databaseId) {
